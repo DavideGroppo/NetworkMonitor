@@ -29,7 +29,7 @@ namespace NetworkMonitor
                 PingReply? reply = await DoPingRequest();
                 history.AddToHistory(reply);
                 UpdateMetrics();
-                trayManager.UpdateStatus(metrics.getNetworkQuality());
+                trayManager.UpdateStatus(metrics.getNetworkQuality(), reply);
 
                 await Task.Delay(pingDelay);
             }

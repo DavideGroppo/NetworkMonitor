@@ -1,6 +1,9 @@
 
+using System.Collections.ObjectModel;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
+using NetworkMonitor.Objects;
 
 namespace NetworkMonitor
 {
@@ -26,9 +29,12 @@ namespace NetworkMonitor
 
         private MonitorWindow? window;
 
+        private ObservableCollection<UIPingModel> viewCollection;
+
         public TrayIconManager(ref PingHistory history, ref PingMetrics metrics)
         {
 
+            this.viewCollection = new ObservableCollection<UIPingModel>();
             this.history = history;
             this.metrics = metrics;
             lastStatus = PingMetrics.NetworkQuality.Bad;
@@ -47,18 +53,24 @@ namespace NetworkMonitor
             settings = new TrayIconSettings();
 
         }
-        
+
         private async void CreateUiThread()
         {
             Thread uiThread = new Thread((ThreadStart)(() =>
             {
-                this.window = new MonitorWindow();
+                createWindow();
                 Dispatcher.Run();
             }));
-            
+
             uiThread.SetApartmentState(ApartmentState.STA);
             uiThread.IsBackground = true;
             uiThread.Start();
+        }
+        
+        private void createWindow()
+        {
+            this.window = new MonitorWindow();
+            window.NetworkListView.ItemsSource = viewCollection;
         }
 
         private NotifyIcon CreateNotifyIcon()
@@ -76,6 +88,7 @@ namespace NetworkMonitor
             {
                 window?.Dispatcher.Invoke(() =>
                 {
+                    createWindow();
 
                     window.TxtTitle.Text = metrics.getNetworkQuality().ToString();
                     if (!window.IsVisible)
@@ -214,7 +227,7 @@ namespace NetworkMonitor
         }
 
         // Metodo per aggiornare lo stato dinamicamente
-        public void UpdateStatus(PingMetrics.NetworkQuality networkStatus)
+        public void UpdateStatus(PingMetrics.NetworkQuality networkStatus, PingReply? reply)
         {
 
             notifyIcon.Text = networkStatus.ToString();
@@ -232,6 +245,8 @@ namespace NetworkMonitor
             }
 
             lastStatus = networkStatus;
+
+            updateCollection(reply);
         }
 
         private ToolTipIcon GetToolTipIcon(PingMetrics.NetworkQuality status)
@@ -283,6 +298,26 @@ namespace NetworkMonitor
             }
 
             return icons[trayIcon];
+        }
+
+        public MonitorWindow? getWindow()
+        {
+            return window;
+        }
+
+        private void updateCollection(PingReply? reply)
+        {
+            window?.Dispatcher.Invoke(() =>
+                {
+
+                    var uiReply = new UIPingModel(reply);
+                    viewCollection.Insert(0,uiReply);
+                    if (viewCollection.Count() > 10)
+                    {
+                        viewCollection.RemoveAt(9);
+                    }
+
+                });
         }
 
     }

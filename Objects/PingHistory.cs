@@ -1,5 +1,7 @@
+using System.Collections.ObjectModel;
 using System.Net.NetworkInformation;
 using System.Numerics;
+using NetworkMonitor.Objects;
 
 namespace NetworkMonitor
 {
@@ -26,6 +28,7 @@ namespace NetworkMonitor
                 pingHystory.Dequeue();
             }
             pingHystory.Enqueue(reply);
+
         }
 
         public Queue<PingReply> getPingHistory()
