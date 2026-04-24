@@ -1,4 +1,6 @@
+
 using System.Runtime.InteropServices;
+using System.Windows.Threading;
 
 namespace NetworkMonitor
 {
@@ -16,19 +18,27 @@ namespace NetworkMonitor
 
         private PingHistory history;
 
+        private PingMetrics metrics;
+
         private TrayIconSettings settings;
 
         private PingMetrics.NetworkQuality lastStatus;
 
-        public TrayIconManager(ref PingHistory history)
+        private MonitorWindow? window;
+
+        public TrayIconManager(ref PingHistory history, ref PingMetrics metrics)
         {
 
             this.history = history;
+            this.metrics = metrics;
             lastStatus = PingMetrics.NetworkQuality.Bad;
             icons = LoadIcons();
 
             //menu contestuale con il tasto destro
             contextMenu = CreateContextMenu();
+
+            //creo thread per window UI
+            CreateUiThread();
 
             //configura l'icona
             notifyIcon = CreateNotifyIcon();
@@ -36,6 +46,19 @@ namespace NetworkMonitor
             //configuro le impostazioni della tray icon
             settings = new TrayIconSettings();
 
+        }
+        
+        private async void CreateUiThread()
+        {
+            Thread uiThread = new Thread((ThreadStart)(() =>
+            {
+                this.window = new MonitorWindow();
+                Dispatcher.Run();
+            }));
+            
+            uiThread.SetApartmentState(ApartmentState.STA);
+            uiThread.IsBackground = true;
+            uiThread.Start();
         }
 
         private NotifyIcon CreateNotifyIcon()
@@ -49,11 +72,18 @@ namespace NetworkMonitor
             };
 
             // 3. Gestisci il doppio click (opzionale)
-            nIcon.DoubleClick += (s, e) =>
+            nIcon.DoubleClick += ((s, e) =>
             {
-                MessageBox.Show(history.ToString());
-                
-            };
+                window?.Dispatcher.Invoke(() =>
+                {
+
+                    window.TxtTitle.Text = metrics.getNetworkQuality().ToString();
+                    if (!window.IsVisible)
+                        window.Show();
+                    window?.Activate();
+
+                });
+            });
 
             return nIcon;
         }

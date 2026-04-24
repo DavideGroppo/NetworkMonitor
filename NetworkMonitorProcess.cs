@@ -6,13 +6,6 @@ namespace NetworkMonitor
 {
     public class NetworkMonitorProcess
     {
-
-        public NetworkMonitorProcess()
-        {
-            metrics = new(historyLength);
-            history = new(historyLength);
-            trayManager = new(ref history);
-        }
         private TrayIconManager trayManager;
         private PingMetrics metrics;
         private PingHistory history;
@@ -20,6 +13,13 @@ namespace NetworkMonitor
         private const int historyLength = 30;
 
         private const int pingDelay = 1000;
+
+        public NetworkMonitorProcess()
+        {
+            metrics = new PingMetrics(historyLength);
+            history = new PingHistory(historyLength);
+            trayManager = new TrayIconManager(ref history, ref metrics);
+        }
 
         public async Task<bool> runProcess()
         {

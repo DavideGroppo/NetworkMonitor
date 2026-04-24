@@ -1,0 +1,15 @@
+<Window x:Class="NetworkMonitor.MonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Stato Rete" Height="350" Width="280" WindowStyle="ToolWindow" AllowsTransparency="False"
+        Background="Black" Topmost="False" ShowInTaskbar="False">
+
+  <Border CornerRadius="12" Background="#F3F3F3" BorderBrush="#CCCCCC" BorderThickness="1">
+    <Grid Margin="20">
+      <StackPanel>
+        <TextBlock x:Name="TxtTitle" Text="Connessione Wi-Fi" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,15"/>
+      </StackPanel>
+    </Grid>
+  </Border>
+
+</Window>
